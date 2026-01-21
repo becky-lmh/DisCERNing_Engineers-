@@ -1,0 +1,44 @@
+% 3D Constant Velocity Kalman Filter
+% State vector x = [x;vx;y;vy;z;vz]
+
+steps = 3;
+dt = 1;
+
+% Guess the intial state 
+x0 = 0;
+vx = 0;
+y = 0;
+vy = 0;
+z = 0;
+% Relativistic speed E = mc^2/(1-v^2/c^2). Rest mass = 140 MeV/c^2
+vz = sqrt(1 - (140/totalEnergy))*3e8; 
+initialState = [x0;vx;y;vy;z;vz];
+
+% State transition matrix A = Block diagonal matrix
+% with the [1 dt; 0 1] block repeated for the 
+% x, y, and z spatial dimensions.
+A1D = [1 dt; 0 1]; 
+A = kron(eye(3),A1D); % State transiton model
+
+H1D = [1 0];
+H = kron(eye(3),H1D); % Measurement model 
+
+sigma = 0.2;
+R = sigma^2*eye(2); % Measurement noise covariance
+
+% Gain matrix G = Kronecker 
+% product of kron(eye(3),[dt^2/2; dt])
+G = kron(eye(3),[dt^2/2; dt]);
+
+
+% Extract the measured positions at detector screens
+pos = [x;y;z];
+
+for k = 1:size(pos,1)
+    pstates(k,:) = predict(KF,T);
+    cstates(k,:) = correct(KF,pos(k,:));
+end
+
+% Calculate Kalman filter K = lqr(A,B,Q,R);
+
+% Using Kalman filter, simulate the 
